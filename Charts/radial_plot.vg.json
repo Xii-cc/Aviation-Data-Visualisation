@@ -26,13 +26,14 @@
         },
         "legend": {
             "titleColor": "#d1d4ce",
-            "labelColor": "#d1d4ce",
-            "orient": "bottom",
-            "symbolStrokeColor": null,
+            "titleFontSize": 12,
             "titleAlign": "center",
             "titleAnchor": "middle",
+            "labelColor": "#d1d4ce",
+            "labelAlign": "center",
             "labelFontSize": 12,
-            "titleFontSize": 12
+            "orient": "bottom",
+            "symbolStrokeColor": null
         },
         "view": {
                 "strokeWidth": 0,
