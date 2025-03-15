@@ -1,0 +1,116 @@
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "title": {
+        "text": "Top 10 Country with the Most Airports"
+    },
+    "config": {
+        "text": {
+            "color": "#d1d4ce"
+        },
+        "axis": {
+            "labelColor": "#d1d4ce",
+            "titleColor": "#d1d4ce",
+            "labelFontSize": 12,
+            "domain": false,
+            "gridOpacity": 0.3
+        },
+        "title": {
+            "color": "#d1d4ce"
+        }
+    },
+    "data": {
+        "url": "./Dataset/airports.csv"
+    },
+    "autosize": {
+    "type": "fit",
+    "contains": "padding"
+    },
+    "width": "container",
+    "height": "container",
+    "background": null,
+    "transform": [
+        {
+            "aggregate": [{"op": "count", "as": "Number of Airports"}],
+            "groupby": ["Country"]
+        },
+        {
+            "window": [{"op": "rank", "as": "rank"}],
+            "sort": [{"field": "Number of Airports", "order": "descending"}]
+        },
+        {
+            "filter": "datum.rank <= 10 || datum.Country == 'Malaysia'"
+        }
+    ],
+    "encoding": {
+        "y": {
+            "field": "Country",
+            "type": "nominal",
+            "sort": {"field": "Number of Airports", "order": "descending"},
+            "axis": {"title": "Country", "domain": false}
+        },
+        "x": {
+            "field": "Number of Airports",
+            "type": "quantitative",
+            "axis": {"title": "Number of Airports", "domain": false}
+        }
+    },
+    "layer": [
+        {
+            "mark": "bar",
+            "encoding": {
+                "tooltip": [
+                    {"field": "Country", "type": "nominal"},
+                    {"field": "Number of Airports", "type": "quantitative"},
+                    {"field": "rank", "type": "ordinal"}
+                ],
+                "size": {
+                    "condition": {
+                        "param": "hover",
+                        "empty": false,
+                        "value": 25
+                    },
+                    "value": 20
+                },
+                "color": {
+                    "condition": [
+                        {
+                            "param": "hover",
+                            "empty": false,
+                            "value": "#f7dba7"
+                        },
+                        {
+                            "test": "datum.Country == 'Malaysia'",
+                            "value": "#F3C95A"
+                        }
+                    ],
+                    "value": "#eb8d6f"
+                },
+                "opacity": {
+                    "condition": [
+                        {
+                            "param": "hover",
+                            "empty": false,
+                            "value": 1
+                        },
+                        {
+                            "test": "datum.Country == 'Malaysia'",
+                            "value": 1
+                        }
+                    ],
+                    "value": 0.30
+                }
+            },
+            "params": [
+                {
+                    "name": "hover",
+                    "select": {"type": "point", "on": "mouseover", "clear": "mouseout"}
+                },
+                {
+                    "name": "select",
+                    "select": {"type": "point", "toggle": "event.shiftKey", "clear": "dblclick"}
+                }
+            ]
+        }
+    ]
+
+}

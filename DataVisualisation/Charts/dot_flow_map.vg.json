@@ -1,0 +1,465 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "autosize": {
+    "type": "fit",
+    "contains": "padding"
+  },
+  "width": "container",
+  "height": "container",
+  "title": "World Wide Airports with 5 Longest Direct Flights from KLIA",
+  "config": {
+    "title": {
+      "color": "#d1d4ce",
+      "fontSize": 20
+    }
+  },
+  "projection": {
+    "type": "equalEarth"
+  },
+  "background": "#2e353b",
+  "params": [
+    {
+      "name": "opacity_slider",
+      "value": 0.5,
+      "bind": {"input": "range", "min": 0, "max": 1, "step" : 0.01,
+        "name": "Opacity"}
+    },
+    {
+      "name": "toggle_routes_images",
+      "value": true,
+      "bind": {
+        "input": "checkbox",
+        "name": "Show Routes"
+      }
+    },
+    {
+      "name": "show_annotations",
+      "value": true,
+      "bind": {
+        "input": "checkbox",
+        "name": "Show Annotations"
+      }
+    }
+  ],
+  "layer": [
+    {
+      "data": {"sphere": true},
+      "mark": {"type": "geoshape", "fill": "#252B30"}
+    },
+    {
+      "data": {
+        "name": "world",
+        "url": "./Dataset/ne_110m_admin_0_countries.json",
+        "format": {"type": "topojson", "feature": "ne_110m_admin_0_countries"}
+      },
+      "mark": {"type": "geoshape", "stroke": "#2e353b", "strokeWidth": 0.5},
+      "encoding": {
+        "color": {
+          "value": "#0e0e0e"
+        }
+      }
+    },
+    {
+      "data": {
+        "graticule": {"step": [15, 15], "extent": [[-181, -91], [181, 91]]}
+      },
+      "mark": {"type": "geoshape", "stroke": "#0e0e0e", "strokeWidth": 1, "opacity": 0.5}
+    },
+    {
+      "data": {
+        "name": "airports",
+        "url": "./Dataset/airports.csv",
+        "format": {"type": "csv"}
+      },
+      "transform": [
+        {"calculate": "datum.Longitude", "as": "longitude"},
+        {"calculate": "datum.Latitude", "as": "latitude"},
+        {"calculate": "datum.Altitude", "as": "altitude"}
+      ],
+      "mark": {"type": "circle", "color": "white", "opacity": 0.75},
+      "encoding": {
+        "longitude": {"field": "longitude", "type": "quantitative"},
+        "latitude": {"field": "latitude", "type": "quantitative"},
+        "size": {
+          "condition": [
+            {
+              "param": "hover",
+              "empty": false,
+              "value": 500
+            }
+          ],
+          "value": 6
+        },
+        "color": {
+          "condition": {
+            "param": "hover",
+            "empty": false,
+            "value": "#ff9ae7"
+          },
+          "field": "Altitude",
+          "type": "quantitative",
+          "scale": {
+            "range": [
+              "#f3c95a",
+              "#eb8d6f",
+              "#cf5db4",
+              "#B45FC3",
+              "#9861d1"
+            ]
+          },
+          "title": "Altitude (ft)",
+          "legend": {
+            "orient": "none",
+            "titleColor": "#F3C95A",
+            "labelColor": "#F3C95A",
+            "legendX": 50,
+            "legendY": 0,
+            "labelFontSize": 12
+          }
+        },
+        "opacity": {
+          "condition": [{
+            "test": "datum.IATA === 'KUL'",
+            "value": 1
+          },
+          {
+            "param": "opacity_slider",
+            "value": {"expr": "opacity_slider"}
+          }]
+        },
+        "tooltip": [
+          {"field": "Name", "type": "nominal"},
+          {"field": "City", "type": "nominal"},
+          {"field": "Country", "type": "nominal"},
+          {"field": "Altitude", "type": "quantitative"}
+        ]
+      },
+      "params": [
+        {
+          "name": "hover",
+          "select": {"type": "point", "on": "mouseover", "clear": "mouseout"}
+        }
+      ]
+    },
+    {
+      "data": {
+        "url": "./Dataset/mly_route.csv",
+        "format": {"type": "csv"}
+        
+      },
+      "transform": [
+        {"filter": {"param": "toggle_routes_images"}},
+        {
+          "calculate": "{'type': 'LineString', 'coordinates': [[datum.Source_Longitude, datum.Source_Latitude], [datum.Destination_Longitude, datum.Destination_Latitude]]}",
+          "as": "geojson"
+        },
+        {
+          "calculate": "round(datum.Distance_km)",
+          "as": "rounded_distance_km"
+        }
+      ],
+      "mark": {"type": "geoshape", "stroke": "#9dd9d2", "strokeWidth": 2, "fill": null},
+      "encoding": {
+        "shape": {"field": "geojson", "type": "geojson"},
+        "tooltip": [
+          {"field": "Source_Airport", "type": "nominal", "title": "Source Airport"},
+          {"field": "Destination_Airport", "type": "nominal", "title": "Destination Airport"},
+          {"field": "rounded_distance_km", "type": "quantitative", "title": "Distance (km)"}
+        ]
+      }
+    },
+    {
+      "data": {
+        "url": "./Dataset/mly_route.csv",
+        "format": {"type": "csv"}
+      },
+      "transform": [
+        {
+          "calculate": "round(datum.Distance_km)",
+          "as": "rounded_distance_km"
+        },
+        {"filter": {"param": "toggle_routes_images"}}
+      ],
+      "mark": {
+        "type": "image",
+        "url": "./Images/location.png",
+        "width": 30,
+        "height": 30,
+        "align": "center",
+        "baseline": "bottom"
+      },
+      "encoding": {
+        "latitude": {"field": "Destination_Latitude", "type": "quantitative"},
+        "longitude": {"field": "Destination_Longitude", "type": "quantitative"},
+        "tooltip": [
+          {"field": "Airport_Name", "type": "nominal", "title": "Destination Airport"},
+          {"field": "Destination_Country", "type": "nominal", "title": "Country"},
+          {"field": "rounded_distance_km", "type": "quantitative", "title": "Distance (km)"},
+          {"field": "image"}
+        ]
+      }
+    },
+    {
+      "data": {
+        "values": {"Source_Airport": "KUL", "Airport_Name": "Kuala Lumpur International Airport", "Source_Latitude": 2.74558, "Source_Longitude": 101.71, "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Flag_of_Malaysia.svg/1920px-Flag_of_Malaysia.svg.png", "Country": "Malaysia"}
+      },
+      "transform": [
+        {"filter": {"param": "toggle_routes_images"}}
+      ],
+      "mark": {
+        "type": "image",
+        "url": "./Images/location.png",
+        "width": 30,
+        "height": 30,
+        "align": "center",
+        "baseline": "bottom"
+      },
+      "encoding": {
+        "latitude": {"field": "Source_Latitude", "type": "quantitative"},
+        "longitude": {"field": "Source_Longitude", "type": "quantitative"},
+        "tooltip": [
+          {"field": "Airport_Name", "type": "nominal", "title": "Airport Name"},
+          {"field": "Country", "type": "nominal", "title": "Country"},
+          {"field": "image"}
+        ]
+      }
+    },
+    {
+      "data": {
+        "values": {
+          "text": "The west cost of the United States",
+          "startx": -150.827594,
+          "starty": 5.015873
+        }
+      },
+      "transform": [
+        {"filter": {"param": "show_annotations"}}
+      ],
+      "mark": {
+        "type": "text",
+        "align": "left"
+      },
+      "encoding": {
+        "text": {"field": "text", "type": "nominal"},
+        "color": {"value": "#d1d4ce"},
+        "size": {"value": 14},
+        "latitude": {"field": "starty", "type": "quantitative"},
+        "longitude": {"field": "startx", "type": "quantitative"}
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "x": 75,
+        "y": 300,
+        "align": "left"
+      },
+      "transform": [
+        {"filter": {"param": "show_annotations"}}
+      ],
+      "data": {"values": {
+        "text": "has high concentration of airports.",
+        "startx": -150.827594,
+        "starty": 0.015873
+      }},
+      "encoding": {
+        "text": {"field": "text", "type": "nominal"},
+        "color": {"value": "#d1d4ce"},
+        "size": {"value": 14},
+        "latitude": {"field": "starty", "type": "quantitative"},
+        "longitude": {"field": "startx", "type": "quantitative"}
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "align": "left"
+      },
+      "data": {"values": {
+        "text": "Europe has the highest",
+        "startx": 58.827594,
+        "starty": 58.015873
+      }},
+      "transform": [
+        {"filter": {"param": "show_annotations"}}
+      ],
+      "encoding": {
+        "text": {"field": "text", "type": "nominal"},
+        "color": {"value": "#d1d4ce"},
+        "size": {"value": 14},
+        "latitude": {"field": "starty", "type": "quantitative"},
+        "longitude": {"field": "startx", "type": "quantitative"}
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "align": "left"
+      },
+      "data": {"values": {
+        "text": "density of airports.",
+        "startx": 55.827594,
+        "starty": 53.015873
+      }},
+      "transform": [
+        {"filter": {"param": "show_annotations"}}
+      ],
+      "encoding": {
+        "text": {"field": "text", "type": "nominal"},
+        "color": {"value": "#d1d4ce"},
+        "size": {"value": 14},
+        "latitude": {"field": "starty", "type": "quantitative"},
+        "longitude": {"field": "startx", "type": "quantitative"}
+      }
+    },
+    {
+      "data": {"values":
+        [
+          {"startx": -83.694578, "starty": 33.836634,"endx": -123.827594, "endy": 8.015873}
+        ]
+      },
+      "transform": [
+        {"filter": {"param": "show_annotations"}}
+      ],
+      "mark": {
+        "type": "rule",
+        "color": "#d1d4ce",
+        "strokeWidth": 2
+      },
+      "encoding": {
+        "longitude": {"field": "startx", "type": "quantitative"},
+        "longitude2": {"field": "endx", "type": "quantitative"},
+        "latitude": {"field": "starty", "type": "quantitative"}, 
+        "latitude2": {"field": "endy", "type": "quantitative"}
+      }
+    },
+    {
+      "data": {"values":
+        [
+          {"startx": 10.483843, "starty": 50.803549, "endx":55.014578, "endy": 57.674600}
+        ]
+      },
+      "transform": [
+        {"filter": {"param": "show_annotations"}}
+      ],
+      "mark": {
+        "type": "rule",
+        "color": "#d1d4ce",
+        "strokeWidth": 2
+      },
+      "encoding": {
+        "longitude": {"field": "startx", "type": "quantitative"},
+        "longitude2": {"field": "endx", "type": "quantitative"},
+        "latitude": {"field": "starty", "type": "quantitative"},
+        "latitude2": {"field": "endy", "type": "quantitative"}
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "align": "left"
+      },
+      "transform": [
+        {"filter": {"param": "show_annotations"}}
+      ],
+      "data": {"values": {
+        "text": "Less density of airports due to",
+        "startx": 50.918500,
+        "starty": -42.521543
+      }},
+      "encoding": {
+        "text": {"field": "text", "type": "nominal"},
+        "color": {"value": "#d1d4ce"},
+        "size": {"value": 14},
+        "latitude": {"field": "starty", "type": "quantitative"},
+        "longitude": {"field": "startx", "type": "quantitative"}
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "align": "left"
+      },
+      "transform": [
+        {"filter": {"param": "show_annotations"}}
+      ],
+      "data": {"values": {
+        "text": "economical and population constraints.",
+        "startx": 52.918500,
+        "starty": -47.521543
+      }},
+      "encoding": {
+        "text": {"field": "text", "type": "nominal"},
+        "color": {"value": "#d1d4ce"},
+        "size": {"value": 14},
+        "latitude": {"field": "starty", "type": "quantitative"},
+        "longitude": {"field": "startx", "type": "quantitative"}
+      }
+    },
+    {
+      "data": {"values":
+        [
+          {"startx": 15.918500, "starty": 21.521543, "endx":78.320844, "endy": -38.246335}
+        ]
+      },
+      "transform": [
+        {"filter": {"param": "show_annotations"}}
+      ],
+      "mark": {
+        "type": "rule",
+        "color": "#d1d4ce",
+        "strokeWidth": 2
+      },
+      "encoding": {
+        "longitude": {"field": "startx", "type": "quantitative"},
+        "longitude2": {"field": "endx", "type": "quantitative"},
+        "latitude": {"field": "starty", "type": "quantitative"},
+        "latitude2": {"field": "endy", "type": "quantitative"}
+      }
+    },
+    {
+      "data": {"values":
+        [
+          {"startx": 47.207562, "starty": -73.853264, 
+          "endx":78.320844, "endy": -52.246335}
+        ]
+      },
+      "transform": [
+        {"filter": {"param": "show_annotations"}}
+      ],
+      "mark": {
+        "type": "rule",
+        "color": "#d1d4ce",
+        "strokeWidth": 2
+      },
+      "encoding": {
+        "longitude": {"field": "startx", "type": "quantitative"},
+        "longitude2": {"field": "endx", "type": "quantitative"},
+        "latitude": {"field": "starty", "type": "quantitative"},
+        "latitude2": {"field": "endy", "type": "quantitative"}
+      }
+    },
+    {
+      "data": {"values":
+        [
+          {"startx": -40.461985, "starty": 67.136216, 
+          "endx":78.320844, "endy": -38.246335}
+        ]
+      },
+      "transform": [
+        {"filter": {"param": "show_annotations"}}
+      ],
+      "mark": {
+        "type": "rule",
+        "color": "#d1d4ce",
+        "strokeWidth": 2
+      },
+      "encoding": {
+        "longitude": {"field": "startx", "type": "quantitative"},
+        "longitude2": {"field": "endx", "type": "quantitative"},
+        "latitude": {"field": "starty", "type": "quantitative"},
+        "latitude2": {"field": "endy", "type": "quantitative"}
+      }
+    }
+  ]
+}

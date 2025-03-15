@@ -1,0 +1,254 @@
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "width": 500,
+    "height": 425,
+    "title": "Malaysian Airport Types",
+    "data": {
+        "url": "../Dataset/my_airports_cleaned.csv"
+    },
+    "config": {
+        "background": null,
+        "text": {
+            "color": "#d1d4ce",
+            "size": 12
+        },
+        "axis": {
+            "labelColor": "#d1d4ce",
+            "titleColor": "#d1d4ce",
+            "domain": false
+        },
+        "title": {
+            "color": "#d1d4ce"
+        },
+        "legend": {
+            "titleColor": "#d1d4ce",
+            "labelColor": "#d1d4ce",
+            "orient": "bottom",
+            "symbolStrokeColor": null,
+            "titleAlign": "center",
+            "titleAnchor": "middle",
+            "labelFontSize": 12,
+            "titleFontSize": 12
+        },
+        "view": {
+            "strokeWidth": 0,
+            "step": 13
+        }
+    },
+    "transform": [
+        {
+            "filter": "datum.type !== 'closed'"
+        },
+        {
+            "lookup": "type",
+            "from": {
+                "data": {
+                    "values": [
+                        {"type": "heliport", "type_display": "Heliport"},
+                        {"type": "small_airport", "type_display": "Small Airport"},
+                        {"type": "balloonport", "type_display": "Balloonport"},
+                        {"type": "medium_airport", "type_display": "Medium Airport"},
+                        {"type": "large_airport", "type_display": "Large Airport"}
+                    ]
+                },
+                "key": "type",
+                "fields": ["type_display"]
+            }
+        },
+        {
+            "aggregate": [
+                {"op": "count", "as": "count"}
+            ],
+            "groupby": ["type_display"]
+        },
+        {
+            "window": [
+                {"op": "sum", "field": "count", "as": "total_count"}
+            ],
+            "frame": [null, null]
+        },
+        {
+            "calculate": "datum.count / datum.total_count * 100",
+            "as": "percentage"
+        },
+        {
+            "calculate": "datum.type_display + ' (' + datum.count + ', ' + format(datum.percentage, '.1f') + '%)'",
+            "as": "type_count_percentage"
+        }
+    ],
+    "layer": [
+        {
+            "mark": {
+                "type": "arc",
+                "innerRadius": 20,
+                "stroke": "#2e353b"
+            },
+            "encoding": {
+                "theta": {"field": "count", "type": "quantitative", "stack": true},
+                "radius": {
+                    "field": "count",
+                    "scale": {
+                        "type": "sqrt",
+                        "zero": true,
+                        "rangeMin": 50,
+                        "rangeMax": 200
+                    }
+                },
+                "color": {
+                    "field": "type_display",
+                    "type": "nominal",
+                    "legend": {
+                        "title": "Airport Category"
+                    },
+                    "scale": {
+                        "domain": ["Small Airport", "Medium Airport", "Heliport", "Balloonport", "Large Airport"],
+                        "range": ["#f3c95a", "#eb8d6f", "#cf5db4", "#b45fc3", "#9861d1"]
+                    }
+                },
+                "tooltip": [
+                    {"field": "type_display", "type": "nominal", "title": "Airport Type"},
+                    {"field": "count", "type": "quantitative", "title": "Number"},
+                    {"field": "percentage", "type": "quantitative", "title": "Percentage", "format": ".1f"}
+                ],
+                "order": {"field": "count", "type": "quantitative", "sort": "ascending"}
+            }
+        },
+        {
+            "mark": {
+                "type": "text",
+                "x": 0,
+                "y": 200
+            },
+            "data": {"values": [{"airport": "Small Airport"}]},
+            "encoding": {
+                "text": {"field": "airport", "type": "nominal"},
+                "color": {"value": "#d1d4ce"},
+                "size": {"value": 12}
+            }
+        },
+        {
+            "mark": {
+                "type": "text",
+                "x": 425,
+                "y": 300
+            },
+            "data": {"values": [{"airport": "Medium Airport"}]},
+            "encoding": {
+                "text": {"field": "airport", "type": "nominal"},
+                "color": {"value": "#d1d4ce"},
+                "size": {"value": 12}
+            }
+        },
+        {
+            "mark": {
+                "type": "text",
+                "x": 400,
+                "y": 125
+            },
+            "data": {"values": [{"airport": "Heliport"}]},
+            "encoding": {
+                "text": {"field": "airport", "type": "nominal"},
+                "color": {"value": "#d1d4ce"},
+                "size": {"value": 12}
+            }
+        },
+        {
+            "mark": {
+                "type": "text",
+                "x": 350,
+                "y": 75
+            },
+            "data": {"values": [{"airport": "Balloonport"}]},
+            "encoding": {
+                "text": {"field": "airport", "type": "nominal"},
+                "color": {"value": "#d1d4ce"},
+                "size": {"value": 12}
+            }
+        },
+        {
+            "mark": {
+                "type": "text",
+                "x": 300,
+                "y": 50
+            },
+            "data": {"values": [{"airport": "Large Airport"}]},
+            "encoding": {
+                "text": {"field": "airport", "type": "nominal"},
+                "color": {"value": "#d1d4ce"},
+                "size": {"value": 12}
+            }
+        },
+        {
+            "mark": {
+                "type": "rule",
+                "color": "#d1d4ce"
+            },
+            "encoding": {
+                "x": {"value": 40},
+                "x2": {"value": 100},
+                "y": {"value": 200},
+                "y2": {"value": 200}
+            }
+        },
+        {
+            "mark": {
+                "type": "rule",
+                "color": "#d1d4ce"
+            },
+            "encoding": {
+                "x": {"value": 350},
+                "y": {"value": 275},
+                "x2": {"value": 380},
+                "y2": {"value": 300}
+            }
+        },
+        {
+            "mark": {
+                "type": "rule",
+                "color": "#d1d4ce"
+            },
+            "encoding": {
+                "x": {"value": 350},
+                "y": {"value": 150},
+                "x2": {"value": 375},
+                "y2": {"value": 125}
+            }
+        },
+        {
+            "mark": {
+                "type": "rule",
+                "color": "#d1d4ce"
+            },
+            "encoding": {
+                "x": {"value": 275},
+                "y": {"value": 75},
+                "x2": {"value": 315},
+                "y2": {"value": 75}
+            }
+        },
+        {
+            "mark": {
+                "type": "rule",
+                "color": "#d1d4ce"
+            },
+            "encoding": {
+                "x": {"value": 255},
+                "y": {"value": 150},
+                "x2": {"value": 275},
+                "y2": {"value": 75}
+            }
+        },
+        {
+            "mark": {
+                "type": "rule",
+                "color": "#d1d4ce"
+            },
+            "encoding": {
+                "x": {"value": 250},
+                "y": {"value": 150},
+                "x2": {"value": 262},
+                "y2": {"value": 50}
+            }
+        }
+    ]
+}
