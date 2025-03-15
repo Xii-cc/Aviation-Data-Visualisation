@@ -30,10 +30,10 @@
             "titleAlign": "center",
             "titleAnchor": "middle",
             "labelColor": "#d1d4ce",
-            "labelAlign": "center",
             "labelFontSize": 12,
             "orient": "bottom",
-            "symbolStrokeColor": null
+            "symbolStrokeColor": null,
+            "layout": {"bottom": {"anchor": "middle"}}
         },
         "view": {
                 "strokeWidth": 0,
